@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: mood-diary-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-mood_diary}
+      MYSQL_USER: ${DB_USER:-mood_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-mood_password}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./docker/mariadb/init:/docker-entrypoint-initdb.d
+    networks:
+      - mood-diary-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: mood-diary-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - mood-diary-network
+
+  backend:
+    build:
+      context: ./backend-main
+      dockerfile: Dockerfile
+    container_name: mood-diary-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-mood_diary}
+      DB_USER: ${DB_USER:-mood_user}
+      DB_PASSWORD: ${DB_PASSWORD:-mood_password}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-key-here}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      - mariadb
+      - redis
+    networks:
+      - mood-diary-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mood-diary-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8080/api}
+    depends_on:
+      - backend
+    networks:
+      - mood-diary-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: mood-diary-nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_PORT:-80}:80"
+      - "${NGINX_SSL_PORT:-443}:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - mood-diary-network
+
+volumes:
+  mariadb_data:
+  redis_data:
+
+networks:
+  mood-diary-network:
+    driver: bridge
