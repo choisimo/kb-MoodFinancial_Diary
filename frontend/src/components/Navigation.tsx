@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Home, 
   BookOpen, 
@@ -11,7 +12,8 @@ import {
   Menu,
   X,
   Calendar,
-  Search
+  Search,
+  LogOut
 } from "lucide-react";
 
 interface NavigationProps {
@@ -22,6 +24,7 @@ interface NavigationProps {
 
 export function Navigation({ currentView, onViewChange, unreadCount = 0 }: NavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   const navItems = [
     {
@@ -58,6 +61,11 @@ export function Navigation({ currentView, onViewChange, unreadCount = 0 }: Navig
 
   const handleNavClick = (viewId: typeof currentView) => {
     onViewChange(viewId);
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
     setIsMobileMenuOpen(false);
   };
 
@@ -109,16 +117,27 @@ export function Navigation({ currentView, onViewChange, unreadCount = 0 }: Navig
                   )}
                 </Button>
               ))}
+              
+              <div className="pt-2 border-t border-diary-border">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-red-600"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-4 h-4 mr-3" />
+                  로그아웃
+                </Button>
+              </div>
             </div>
             
             <div className="absolute bottom-4 left-4 right-4">
               <div className="flex items-center gap-3 p-3 bg-card rounded-lg border border-diary-border">
                 <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center text-white font-bold">
-                  😊
+                  {user?.nickname?.charAt(0)?.toUpperCase() || '😊'}
                 </div>
                 <div>
-                  <div className="font-medium text-diary-ink">사용자</div>
-                  <div className="text-sm text-muted-foreground">user@example.com</div>
+                  <div className="font-medium text-diary-ink">{user?.nickname || '사용자'}</div>
+                  <div className="text-sm text-muted-foreground">{user?.email || 'user@example.com'}</div>
                 </div>
               </div>
             </div>
@@ -168,17 +187,28 @@ export function Navigation({ currentView, onViewChange, unreadCount = 0 }: Navig
               )}
             </Button>
           ))}
+          
+          <div className="pt-2 border-t border-diary-border">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-left h-12 text-red-600"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-5 h-5 mr-3" />
+              <span className="flex-1">로그아웃</span>
+            </Button>
+          </div>
         </nav>
 
         {/* 사용자 프로필 */}
         <div className="p-4 border-t border-diary-border">
           <div className="flex items-center gap-3 p-3 bg-card rounded-lg border border-diary-border hover:shadow-soft transition-smooth cursor-pointer">
             <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center text-white font-bold text-lg">
-              😊
+              {user?.nickname?.charAt(0)?.toUpperCase() || '😊'}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-diary-ink truncate">사용자</div>
-              <div className="text-sm text-muted-foreground truncate">user@example.com</div>
+              <div className="font-medium text-diary-ink truncate">{user?.nickname || '사용자'}</div>
+              <div className="text-sm text-muted-foreground truncate">{user?.email || 'user@example.com'}</div>
             </div>
             <Button variant="ghost" size="icon" className="flex-shrink-0">
               <User className="w-4 h-4" />
