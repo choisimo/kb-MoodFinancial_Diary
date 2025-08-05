@@ -1,0 +1,51 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.H2Dialect
+  
+  h2:
+    console:
+      enabled: true
+  
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: test@example.com
+    password: testpassword
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+jwt:
+  secret: test-secret-key-for-testing-purposes-only-256-bit-long-enough
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+app:
+  upload:
+    path: ./test-uploads
+  frontend:
+    url: http://localhost:3000
+  cors:
+    allowed-origins: http://localhost:3000
+
+logging:
+  level:
+    com.nodove.MoodDiary: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
