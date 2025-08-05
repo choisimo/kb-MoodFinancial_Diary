@@ -24,40 +24,40 @@ public class UserSettingsService {
         UserSettings settings = userSettingsRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("사용자 설정을 찾을 수 없습니다"));
         
-        return UserSettingsResponse.builder()
-                .id(settings.getId())
-                .notificationEnabled(settings.getNotificationEnabled())
-                .dailyReminderTime(settings.getDailyReminderTime())
-                .targetEntriesPerWeek(settings.getTargetEntriesPerWeek())
-                .privacyMode(settings.getPrivacyMode())
-                .build();
+        return new UserSettingsResponse(
+                settings.getId(),
+                settings.getNotificationEnabled(),
+                settings.getDailyReminderTime(),
+                settings.getTargetEntriesPerWeek(),
+                settings.getPrivacyMode()
+        );
     }
     
     public UserSettingsResponse updateUserSettings(Long userId, UserSettingsRequest request) {
         UserSettings settings = userSettingsRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("사용자 설정을 찾을 수 없습니다"));
         
-        if (request.getNotificationEnabled() != null) {
-            settings.setNotificationEnabled(request.getNotificationEnabled());
+        if (request.notificationEnabled() != null) {
+            settings.setNotificationEnabled(request.notificationEnabled());
         }
-        if (request.getDailyReminderTime() != null) {
-            settings.setDailyReminderTime(request.getDailyReminderTime());
+        if (request.dailyReminderTime() != null) {
+            settings.setDailyReminderTime(request.dailyReminderTime());
         }
-        if (request.getTargetEntriesPerWeek() != null) {
-            settings.setTargetEntriesPerWeek(request.getTargetEntriesPerWeek());
+        if (request.targetEntriesPerWeek() != null) {
+            settings.setTargetEntriesPerWeek(request.targetEntriesPerWeek());
         }
-        if (request.getPrivacyMode() != null) {
-            settings.setPrivacyMode(request.getPrivacyMode());
+        if (request.privacyMode() != null) {
+            settings.setPrivacyMode(request.privacyMode());
         }
         
         UserSettings updatedSettings = userSettingsRepository.save(settings);
         
-        return UserSettingsResponse.builder()
-                .id(updatedSettings.getId())
-                .notificationEnabled(updatedSettings.getNotificationEnabled())
-                .dailyReminderTime(updatedSettings.getDailyReminderTime())
-                .targetEntriesPerWeek(updatedSettings.getTargetEntriesPerWeek())
-                .privacyMode(updatedSettings.getPrivacyMode())
-                .build();
+        return new UserSettingsResponse(
+                updatedSettings.getId(),
+                updatedSettings.getNotificationEnabled(),
+                updatedSettings.getDailyReminderTime(),
+                updatedSettings.getTargetEntriesPerWeek(),
+                updatedSettings.getPrivacyMode()
+        );
     }
 }
