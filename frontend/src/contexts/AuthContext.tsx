@@ -1,16 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AuthResponse } from '../services/api';
-
-interface User {
-  id: number;
-  email: string;
-  nickname: string;
-  emailVerified: boolean;
-}
+import { AuthResponse, UserProfile, authAPI } from '../services/api';
 
 interface AuthContextType {
-  user: User | null;
-  token: string | null;
+  user: UserProfile | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   login: (authData: AuthResponse) => void;
   logout: () => void;
   isAuthenticated: boolean;
@@ -32,48 +26,75 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
+    console.log('AuthContext initializing...');
+    const storedAccessToken = localStorage.getItem('accessToken');
+    const storedRefreshToken = localStorage.getItem('refreshToken');
     const storedUser = localStorage.getItem('user');
 
-    if (storedToken && storedUser) {
-      setToken(storedToken);
+    console.log('Stored tokens:', {
+      accessToken: !!storedAccessToken,
+      refreshToken: !!storedRefreshToken,
+      user: !!storedUser
+    });
+
+    if (storedAccessToken && storedRefreshToken && storedUser) {
+      setAccessToken(storedAccessToken);
+      setRefreshToken(storedRefreshToken);
       setUser(JSON.parse(storedUser));
+      console.log('User authenticated from localStorage');
+    } else {
+      console.log('No valid authentication found in localStorage');
     }
     setIsLoading(false);
   }, []);
 
   const login = (authData: AuthResponse) => {
-    const userData: User = {
-      id: authData.userId,
-      email: authData.email,
-      nickname: authData.nickname,
-      emailVerified: authData.emailVerified,
-    };
-
-    setToken(authData.token);
-    setUser(userData);
-    localStorage.setItem('token', authData.token);
-    localStorage.setItem('user', JSON.stringify(userData));
+    console.log('AuthContext.login called with:', { 
+      accessToken: authData.accessToken ? '***' : null,
+      refreshToken: authData.refreshToken ? '***' : null,
+      user: authData.user 
+    });
+    
+    setAccessToken(authData.accessToken);
+    setRefreshToken(authData.refreshToken);
+    setUser(authData.user);
+    localStorage.setItem('accessToken', authData.accessToken);
+    localStorage.setItem('refreshToken', authData.refreshToken);
+    localStorage.setItem('user', JSON.stringify(authData.user));
+    
+    console.log('AuthContext.login completed, localStorage updated');
   };
 
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const logout = async () => {
+    try {
+      if (refreshToken) {
+        await authAPI.logout(refreshToken);
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setAccessToken(null);
+      setRefreshToken(null);
+      setUser(null);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+    }
   };
 
   const value: AuthContextType = {
     user,
-    token,
+    accessToken,
+    refreshToken,
     login,
     logout,
-    isAuthenticated: !!token && !!user,
+    isAuthenticated: !!accessToken && !!user,
     isLoading,
   };
 

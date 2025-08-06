@@ -145,7 +145,7 @@ const Index = () => {
           />
         );
       
-      case "new-diary":
+      case "new-diary": {
         const editData = editingEntry 
           ? diaryEntries.find(entry => entry.id === editingEntry)
           : undefined;
@@ -157,6 +157,7 @@ const Index = () => {
             initialData={editData}
           />
         );
+      }
       
       case "analytics":
         return (
