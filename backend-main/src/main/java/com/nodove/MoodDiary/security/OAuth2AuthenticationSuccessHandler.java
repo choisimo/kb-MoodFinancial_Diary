@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
+    
+    @Value("${FRONTEND_URL:http://localhost:8084}")
+    private String frontendUrl;
     
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -66,7 +70,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         log.info("OAuth2 login successful for user: {}", user.getEmail());
         
         // Redirect to frontend with tokens
-        String redirectUrl = "http://localhost:3000/login/oauth2/success?" +
+        String redirectUrl = frontendUrl + "/login/oauth2/success?" +
                 "accessToken=" + URLEncoder.encode(accessToken, StandardCharsets.UTF_8) +
                 "&refreshToken=" + URLEncoder.encode(refreshToken, StandardCharsets.UTF_8) +
                 "&tokenType=Bearer" +

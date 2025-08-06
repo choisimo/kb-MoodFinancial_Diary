@@ -70,7 +70,7 @@ public class AuthService {
         User savedUser = userRepository.save(user);
         
         // Send verification email
-        emailService.sendVerificationEmail(savedUser.getEmail(), verificationToken);
+        // emailService.sendVerificationEmail(savedUser.getEmail(), verificationToken);
         
         String accessToken = jwtTokenProvider.generateAccessToken(savedUser);
         String refreshToken = jwtTokenProvider.generateRefreshToken(savedUser);

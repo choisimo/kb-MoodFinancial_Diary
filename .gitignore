@@ -1,0 +1,198 @@
+# ============================================
+# 프로젝트 공통 민감정보 및 환경변수
+# ============================================
+
+# 환경변수 파일 (모든 형태)
+.env*
+!.env.example
+*.env
+application-*.yml
+application-*.yaml
+application-*.properties
+!application.yml
+!application.yaml
+!application.properties
+
+# 보안 관련 파일
+*.key
+*.pem
+*.p12
+*.jks
+*.crt
+*.csr
+jwt-secret.txt
+oauth-config.json
+client-secrets.json
+
+# 데이터베이스 관련
+*.db
+*.sqlite
+*.sqlite3
+database.url
+db-config.json
+
+# ============================================
+# 빌드 결과물 및 의존성
+# ============================================
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+dist/
+dist-ssr/
+*.local
+
+# Java/Gradle
+*.class
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# ============================================
+# IDE 및 에디터 설정
+# ============================================
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+.windsurf/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ============================================
+# 운영체제별 파일
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ============================================
+# 로그 및 임시 파일
+# ============================================
+
+# 로그 파일
+logs/
+*.log
+log/
+hs_err_pid*
+replay_pid*
+
+# 임시 파일
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+*.bak
+*.backup
+*.old
+
+# 캐시 파일
+.cache/
+*.cache
+
+# ============================================
+# 업로드 및 사용자 데이터
+# ============================================
+
+# 업로드된 파일
+uploads/
+files/
+temp/
+tmp/
+user-uploads/
+
+# 백업 디렉토리
+env-backups/
+
+# ============================================
+# 테스트 및 커버리지
+# ============================================
+
+# 테스트 결과
+test-results/
+coverage/
+.nyc_output/
+*.hprof
+
+# ============================================
+# Docker 관련
+# ============================================
+
+# Docker 파일 (민감정보 포함 가능)
+docker-compose.override.yml
+
+# ============================================
+# 기타 민감정보
+# ============================================
+
+# API 키 파일
+api-keys.json
+secrets.json
+config/secrets/
+
+# 인증서 및 라이선스
+licenses/
+certificates/
+
+# 개발자 개인 설정
+.personal/
+personal-config/
+
+# 프로덕션 데이터
+*.production.*
+prod-*
+
+# 백업 파일
+*.backup
+backup-*/

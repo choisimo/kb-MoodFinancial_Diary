@@ -1,0 +1,22 @@
+{
+  "name": "kb-mood-financial-diary",
+  "version": "1.0.0",
+  "description": "KB금융 감정다이어리 프로젝트",
+  "scripts": {
+    "env-manager": "node env-manager/cli.js",
+    "env:start": "node env-manager/cli.js start",
+    "env:dev": "node env-manager/cli.js dev",
+    "env:status": "node env-manager/cli.js status",
+    "env:validate": "node env-manager/cli.js validate",
+    "env:sync": "node env-manager/cli.js sync",
+    "env:backup": "node env-manager/cli.js backup",
+    "env:help": "node env-manager/cli.js help"
+  },
+  "keywords": [
+    "environment-variables",
+    "kb-financial",
+    "mood-diary",
+    "management"
+  ],
+  "private": true
+}

@@ -1,0 +1,147 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+replay_pid*
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
+.windsurf/ 
+
+# Mac
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# 민감정보 및 환경설정 파일
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+*.env
+
+# 데이터베이스 파일
+*.db
+*.sqlite
+*.sqlite3
+
+# 로그 파일
+logs/
+*.log
+log/
+
+# 업로드된 파일
+uploads/
+files/
+temp/
+tmp/
+
+# 백업 파일
+*.bak
+*.backup
+*.old
+*~
+
+# 캐시 파일
+.cache/
+*.cache
+
+# 테스트 결과
+test-results/
+coverage/
+.nyc_output/
+
+# Docker 관련
+.dockerignore
+
+# Spring Boot 관련
+application-*.yml
+application-*.yaml
+application-*.properties
+!application.yml
+!application.yaml
+!application.properties
+
+# JWT 시크릿 키 파일
+jwt-secret.txt
+*.key
+*.pem
+*.p12
+*.jks
+
+# OAuth 설정 파일
+oauth-config.json
+client-secrets.json
+
+# 개발 도구 설정
+.settings/
+.metadata/
+.recommenders/
+
+# 임시 파일
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# 프로파일링 결과
+*.hprof

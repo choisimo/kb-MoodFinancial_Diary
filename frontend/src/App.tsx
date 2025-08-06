@@ -5,10 +5,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import Index from "./pages/Index";
-import LoginPage from "./pages/auth/LoginPage";
-import SignupPage from "./pages/auth/SignupPage";
-import OnboardingPage from "./pages/onboarding/OnboardingPage";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import DashboardPage from "./pages/DashboardPage";
+import OAuth2SuccessPage from "./pages/OAuth2SuccessPage";
+import MoodDiaryListPage from "./pages/MoodDiaryListPage";
+import MoodDiaryWritePage from "./pages/MoodDiaryWritePage";
+import MoodDiaryDetailPage from "./pages/MoodDiaryDetailPage";
+import MoodDiaryEditPage from "./pages/MoodDiaryEditPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,19 +27,44 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
-            <Route
-              path="/onboarding"
-              element={
-                <ProtectedRoute>
-                  <OnboardingPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/login/oauth2/success" element={<OAuth2SuccessPage />} />
             <Route
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <Index />
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mood-diaries"
+              element={
+                <ProtectedRoute>
+                  <MoodDiaryListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mood-diaries/write"
+              element={
+                <ProtectedRoute>
+                  <MoodDiaryWritePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mood-diaries/:id"
+              element={
+                <ProtectedRoute>
+                  <MoodDiaryDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mood-diaries/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <MoodDiaryEditPage />
                 </ProtectedRoute>
               }
             />
