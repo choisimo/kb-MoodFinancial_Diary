@@ -2,7 +2,8 @@ package com.nodove.MoodDiary.config;
 
 import com.nodove.MoodDiary.security.JwtAuthenticationFilter;
 import com.nodove.MoodDiary.security.OAuth2AuthenticationSuccessHandler;
-import com.nodove.MoodDiary.service.OAuth2UserService;
+import com.nodove.MoodDiary.security.OAuth2AuthenticationFailureHandler;
+import com.nodove.MoodDiary.service.InfisicalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -26,21 +28,17 @@ import java.util.Arrays;
 public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final OAuth2UserService oAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+    private final InfisicalService infisicalService;
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfo -> userInfo
-                    .userService(oAuth2UserService)
-                )
-                .successHandler(oAuth2AuthenticationSuccessHandler)
-            )   
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
@@ -48,7 +46,18 @@ public class SecurityConfig {
                 .requestMatchers("/api/health").permitAll()
                 .requestMatchers("/login/oauth2/**").permitAll()
                 .requestMatchers("/oauth2/**").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/swagger-ui/**").permitAll()
+                .requestMatchers("/v3/api-docs/**").permitAll()
+                .requestMatchers("/swagger-resources/**").permitAll()
+                .requestMatchers("/webjars/**").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .successHandler(oAuth2AuthenticationSuccessHandler)
+                .failureHandler(oAuth2AuthenticationFailureHandler)
+                .permitAll()
             )
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, authException) -> {
@@ -57,7 +66,7 @@ public class SecurityConfig {
                         response.setContentType("application/json");
                         response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"Authentication required\"}");
                     } else {
-                        response.sendRedirect("/oauth2/authorization/google");
+                        response.sendRedirect("/api/auth/login");
                     }
                 })
             )
@@ -69,8 +78,19 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        
+        // Get CORS settings from Infisical with fallback to defaults
+        String allowedOrigins = infisicalService.getSecret("CORS_ALLOWED_ORIGINS", 
+                "http://localhost:8087,http://localhost:8080,http://localhost:3000");
+        String allowedMethods = infisicalService.getSecret("CORS_ALLOWED_METHODS", 
+                "GET,POST,PUT,DELETE,PATCH,OPTIONS");
+        
+        // Parse comma-separated values
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        List<String> methods = Arrays.asList(allowedMethods.split(","));
+        
+        configuration.setAllowedOrigins(origins);
+        configuration.setAllowedMethods(methods);
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         

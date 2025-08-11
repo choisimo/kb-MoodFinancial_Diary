@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
+import NotificationDropdown from "./Notification/NotificationDropdown";
 import { 
   Home, 
   BookOpen, 
@@ -82,6 +83,7 @@ export function Navigation({ currentView, onViewChange, unreadCount = 0 }: Navig
           </div>
           
           <div className="flex items-center gap-2">
+            <NotificationDropdown />
             <Button variant="ghost" size="icon">
               <Search className="w-5 h-5" />
             </Button>
@@ -166,6 +168,11 @@ export function Navigation({ currentView, onViewChange, unreadCount = 0 }: Navig
               day: 'numeric',
               weekday: 'long'
             })}
+          </div>
+          
+          {/* 알림 드롭다운 */}
+          <div className="mt-2">
+            <NotificationDropdown />
           </div>
         </div>
 

@@ -139,14 +139,14 @@ const LoginPage: React.FC = () => {
             <div className="mt-6 grid grid-cols-2 gap-3">
               <Button
                 variant="outline"
-                onClick={() => window.location.href = 'http://localhost:8080/oauth2/authorization/google'}
+                onClick={() => window.location.href = 'http://localhost:8090/oauth2/authorization/google'}
                 className="w-full"
               >
                 Google
               </Button>
               <Button
                 variant="outline"
-                onClick={() => window.location.href = 'http://localhost:8080/oauth2/authorization/kakao'}
+                onClick={() => window.location.href = 'http://localhost:8090/oauth2/authorization/kakao'}
                 className="w-full"
               >
                 Kakao

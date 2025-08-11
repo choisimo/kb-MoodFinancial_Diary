@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
     
     private final JavaMailSender mailSender;
+    private final InfisicalService infisicalService;
     
     @Value("${spring.mail.username}")
     private String fromEmail;
@@ -26,7 +27,7 @@ public class EmailService {
             message.setText(
                 "안녕하세요!\n\n" +
                 "KB 무드 금융 다이어리 회원가입을 완료하기 위해 아래 링크를 클릭해주세요:\n\n" +
-                "http://localhost:3000/verify-email?token=" + verificationToken + "\n\n" +
+                infisicalService.getSecret("FRONTEND_URL", "http://localhost:8087") + "/verify-email?token=" + verificationToken + "\n\n" +
                 "링크는 24시간 후 만료됩니다.\n\n" +
                 "감사합니다."
             );
@@ -48,7 +49,7 @@ public class EmailService {
             message.setText(
                 "안녕하세요!\n\n" +
                 "비밀번호 재설정을 위해 아래 링크를 클릭해주세요:\n\n" +
-                "http://localhost:3000/reset-password?token=" + resetToken + "\n\n" +
+                infisicalService.getSecret("FRONTEND_URL", "http://localhost:8087") + "/reset-password?token=" + resetToken + "\n\n" +
                 "링크는 1시간 후 만료됩니다.\n\n" +
                 "만약 비밀번호 재설정을 요청하지 않으셨다면 이 이메일을 무시해주세요.\n\n" +
                 "감사합니다."

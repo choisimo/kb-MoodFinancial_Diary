@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Search, Navigation } from "lucide-react";
+import { useInfisicalConfig } from "@/hooks/useInfisicalConfig";
 
 declare global {
   interface Window {
@@ -30,13 +31,16 @@ export function KakaoMapPicker({ onLocationSelect, initialLocation, className }:
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(initialLocation || null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Infisical 설정 사용
+  const { kakaoMapKey } = useInfisicalConfig();
 
   // Kakao Map API 로드
   useEffect(() => {
-    const apiKey = import.meta.env.VITE_KAKAO_MAP_KEY;
+    const apiKey = kakaoMapKey || import.meta.env.VITE_KAKAO_MAP_KEY;
     
     if (!apiKey) {
-      console.error('Kakao Map API 키가 설정되지 않았습니다. .env 파일에 VITE_KAKAO_MAP_KEY를 설정해주세요.');
+      console.error('Kakao Map API 키가 설정되지 않았습니다. Infisical 또는 .env 파일에 KAKAO_MAP_KEY를 설정해주세요.');
       setIsLoading(false);
       return;
     }
@@ -62,7 +66,7 @@ export function KakaoMapPicker({ onLocationSelect, initialLocation, className }:
     return () => {
       document.head.removeChild(script);
     };
-  }, []);
+  }, [kakaoMapKey]);
 
   const initializeMap = () => {
     if (!mapContainer.current) return;
@@ -166,13 +170,14 @@ export function KakaoMapPicker({ onLocationSelect, initialLocation, className }:
   }
 
   // API 키가 없는 경우 에러 표시
-  if (!import.meta.env.VITE_KAKAO_MAP_KEY) {
+  const apiKey = kakaoMapKey || import.meta.env.VITE_KAKAO_MAP_KEY;
+  if (!apiKey) {
     return (
       <Card className={className}>
         <CardContent className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-sm text-destructive mb-2">Kakao Map API 키가 설정되지 않았습니다.</p>
-            <p className="text-xs text-muted-foreground">.env 파일에 VITE_KAKAO_MAP_KEY를 설정해주세요.</p>
+            <p className="text-xs text-muted-foreground">Infisical 또는 .env 파일에 KAKAO_MAP_KEY를 설정해주세요.</p>
           </div>
         </CardContent>
       </Card>

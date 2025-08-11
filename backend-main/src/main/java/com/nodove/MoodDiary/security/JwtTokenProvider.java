@@ -54,10 +54,10 @@ public class JwtTokenProvider {
         claims.put(CLAIM_TOKEN_TYPE, tokenType);
         
         return Jwts.builder()
-                .subject(user.getEmail())
-                .claims(claims)
-                .issuedAt(now)
-                .expiration(expiryDate)
+                .setSubject(user.getEmail())
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -111,10 +111,9 @@ public class JwtTokenProvider {
     
     private Claims getClaimsFromToken(String token) {
         return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+                .setSigningKey(getSigningKey())
+                .parseClaimsJws(token)
+                .getBody();
     }
     
     public boolean validateToken(String token) {

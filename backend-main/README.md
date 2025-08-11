@@ -56,11 +56,11 @@ OAUTH2_GOOGLE_CLIENT_SECRET=your-google-client-secret
 #### Google OAuth2 설정
 1. [Google Cloud Console](https://console.cloud.google.com/)에서 프로젝트 생성
 2. OAuth 2.0 클라이언트 ID 생성
-3. 승인된 리디렉션 URI 추가: `http://localhost:8080/login/oauth2/code/google`
+3. 승인된 리디렉션 URI 추가: `http://localhost:8090/login/oauth2/code/google`
 
 #### Kakao OAuth2 설정
 1. [Kakao Developers](https://developers.kakao.com/)에서 애플리케이션 생성
-2. Redirect URI 설정: `http://localhost:8080/login/oauth2/code/kakao`
+2. Redirect URI 설정: `http://localhost:8090/login/oauth2/code/kakao`
 
 ## 실행 방법
 
