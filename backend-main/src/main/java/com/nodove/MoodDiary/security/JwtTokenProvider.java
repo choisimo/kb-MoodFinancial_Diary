@@ -94,8 +94,10 @@ public class JwtTokenProvider {
     public boolean isAccessToken(String token) {
         try {
             String tokenType = getTokenTypeFromToken(token);
+            log.debug("Token type check - Expected: {}, Actual: {}", TOKEN_TYPE_ACCESS, tokenType);
             return TOKEN_TYPE_ACCESS.equals(tokenType);
         } catch (JwtException e) {
+            log.error("Error checking token type: {}", e.getMessage());
             return false;
         }
     }
@@ -118,19 +120,22 @@ public class JwtTokenProvider {
     
     public boolean validateToken(String token) {
         try {
-            getClaimsFromToken(token);
-            return !isTokenExpired(token);
+            log.debug("Validating JWT token: {}...", token != null ? token.substring(0, Math.min(20, token.length())) : "null");
+            Claims claims = getClaimsFromToken(token);
+            boolean expired = isTokenExpired(token);
+            log.debug("JWT validation - Claims subject: {}, expired: {}", claims.getSubject(), expired);
+            return !expired;
         } catch (ExpiredJwtException e) {
-            log.debug("JWT token is expired: {}", e.getMessage());
+            log.warn("JWT token is expired: {}", e.getMessage());
             return false;
         } catch (UnsupportedJwtException e) {
             log.error("JWT token is unsupported: {}", e.getMessage());
             return false;
         } catch (MalformedJwtException e) {
-            log.error("Invalid JWT token: {}", e.getMessage());
+            log.error("Invalid JWT token format: {}", e.getMessage());
             return false;
         } catch (JwtException e) {
-            log.error("Invalid JWT signature: {}", e.getMessage());
+            log.error("Invalid JWT signature or other JWT error: {}", e.getMessage());
             return false;
         } catch (IllegalArgumentException e) {
             log.error("JWT claims string is empty: {}", e.getMessage());

@@ -68,7 +68,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             
             // 프론트엔드로 리다이렉트 (토큰을 쿼리 파라미터로 전달)
             String redirectUrl = UriComponentsBuilder.fromUriString(dynamicFrontendUrl + "/oauth2/redirect")
-                    .queryParam("token", accessToken)
+                    .queryParam("accessToken", accessToken)
                     .queryParam("refreshToken", refreshToken)
                     .build().toUriString();
             

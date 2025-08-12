@@ -8,19 +8,20 @@ set -e
 
 echo "🚀 KB 무드 금융 다이어리 로컬 개발 환경 시작..."
 
-# 환경변수 파일 확인
-if [ ! -f .env.local ]; then
-    echo "❌ .env.local 파일이 없습니다."
-    echo "📝 다음 명령어로 템플릿을 복사하고 실제 값을 설정해주세요:"
-    echo "   cp .env.local.example .env.local"
-    echo "   nano .env.local"
+# 환경변수 파일 확인 (.env 우선)
+if [ -f .env ]; then
+    echo "✅ .env 파일 사용"
+    export $(cat .env | grep -v '^#' | grep -v '^$' | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' | xargs)
+elif [ -f .env.local ]; then
+    echo "✅ .env.local 파일 사용 (대체)"
+    export $(cat .env.local | grep -v '^#' | grep -v '^$' | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' | xargs)
+else
+    echo "❌ 환경변수 파일이 없습니다."
+    echo "📝 다음 명령어로 .env 파일을 생성해주세요:"
+    echo "   cp .env.example .env"
+    echo "   nano .env"
     exit 1
 fi
-
-echo "✅ 환경변수 파일 확인 완료"
-
-# 환경변수 로드
-export $(cat .env.local | grep -v '^#' | grep -v '^$' | xargs)
 
 echo "✅ 환경변수 로드 완료"
 
@@ -38,7 +39,7 @@ echo "🔍 필수 환경변수 확인 중..."
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ] || [ "${!var}" = "your_"* ]; then
         echo "❌ 환경변수 $var가 설정되지 않았거나 기본값입니다."
-        echo "   .env.local 파일에서 실제 값으로 변경해주세요."
+        echo "   .env 파일에서 실제 값으로 변경해주세요."
         exit 1
     fi
 done

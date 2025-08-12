@@ -67,16 +67,22 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${DB_NAME:-mood_diary}
-      MYSQL_USER: ${DB_USER:-mood_user}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-mood_password}
+      MYSQL_DATABASE: ${DB_NAME:-kb_mood_diary}
+      MYSQL_USER: ${DB_USER:-kb_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-your_secure_db_password_here}
     ports:
-      - "${DB_PORT:-3306}:3306"
+      - "${DB_PORT:-3308}:3306"
     volumes:
       - mariadb_data:/var/lib/mysql
       - ./docker/mariadb/init:/docker-entrypoint-initdb.d
     networks:
       - mood-diary-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   redis:
     image: redis:7-alpine
@@ -88,6 +94,11 @@ services:
       - redis_data:/data
     networks:
       - mood-diary-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   backend:
     build:
@@ -95,6 +106,7 @@ services:
       dockerfile: Dockerfile
     container_name: mood-diary-backend
     restart: unless-stopped
+    command: ["java", "-jar", "-Ddebug=true", "app.jar"]
     depends_on:
       mariadb:
         condition: service_healthy
@@ -107,8 +119,30 @@ services:
       ENV: ${ENV:-development}
       SPRING_PROFILES_ACTIVE: ${ENV:-development}
       
+      # Database Configuration
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-mood_diary}
+      DB_USER: ${DB_USER:-mood_user}
+      DB_PASSWORD: ${DB_PASSWORD:-mood_password}
+      
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-mySecretKey123456789012345678901234567890}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      
+      # OAuth2 Configuration
+      OAUTH2_GOOGLE_CLIENT_ID: ${OAUTH2_GOOGLE_CLIENT_ID:-your-google-client-id}
+      OAUTH2_GOOGLE_CLIENT_SECRET: ${OAUTH2_GOOGLE_CLIENT_SECRET:-your-google-client-secret}
+      OAUTH2_KAKAO_CLIENT_ID: ${OAUTH2_KAKAO_CLIENT_ID:-your-kakao-client-id}
+      OAUTH2_KAKAO_CLIENT_SECRET: ${OAUTH2_KAKAO_CLIENT_SECRET:-your-kakao-client-secret}
+      
       # Infisical Configuration (Primary)
-      INFISICAL_ENABLED: ${INFISICAL_ENABLED:-true}
+      INFISICAL_ENABLED: ${INFISICAL_ENABLED:-false}
       INFISICAL_HOST: ${INFISICAL_HOST:-http://infisical:8080}
       INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID}
       INFISICAL_TOKEN: ${INFISICAL_BACKEND_TOKEN}
@@ -223,4 +257,4 @@ networks:
     name: mood-diary-network
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.25.0.0/16

@@ -18,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -38,8 +39,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String role = tokenProvider.getRoleFromToken(jwt);
                 
                 // Load user details
-                User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+                Optional<User> userOptional = userRepository.findById(userId);
+                if (userOptional.isEmpty()) {
+                    log.warn("JWT token contains non-existent user ID: {}. Token may be stale.", userId);
+                    // Clear any existing authentication and continue with anonymous access
+                    SecurityContextHolder.clearContext();
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+                User user = userOptional.get();
                 UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
                     .username(user.getEmail())
                     .password("") // password not needed for JWT
@@ -70,11 +78,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        // Allow public auth endpoints but protect /api/auth/me
+        String method = request.getMethod();
+        log.debug("JWT Filter check - Method: {}, Path: {}", method, path);
+        
+        // Allow public auth endpoints but protect /api/auth/me and /api/notifications/stream
         if (path.startsWith("/api/auth/")) {
-            return !path.equals("/api/auth/me");
+            boolean shouldSkip = !path.equals("/api/auth/me");
+            log.debug("Auth endpoint - Path: {}, Should skip JWT: {}", path, shouldSkip);
+            return shouldSkip;
         }
-        return path.startsWith("/api/public/") ||
+        // SSE stream endpoint requires JWT authentication
+        if (path.equals("/api/notifications/stream")) {
+            log.debug("SSE endpoint - Applying JWT filter");
+            return false; // Apply JWT filter
+        }
+        
+        boolean shouldSkip = path.startsWith("/api/public/") ||
                path.startsWith("/api/test/") ||
                path.startsWith("/api/health") ||
                path.startsWith("/login/oauth2/") ||
@@ -85,13 +104,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                path.startsWith("/swagger-resources/") ||
                path.startsWith("/webjars/") ||
                path.startsWith("/actuator/");
+        
+        log.debug("General endpoint - Path: {}, Should skip JWT: {}", path, shouldSkip);
+        return shouldSkip;
     }
     
     private String getJwtFromRequest(HttpServletRequest request) {
+        // First try to get token from Authorization header
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            log.debug("Using token from Authorization header");
             return bearerToken.substring(7);
         }
+        
+        // For SSE connections, try to get token from query parameter
+        String tokenParam = request.getParameter("token");
+        if (StringUtils.hasText(tokenParam)) {
+            log.debug("Using token from query parameter for path: {}", request.getRequestURI());
+            return tokenParam;
+        }
+        
+        log.debug("No JWT token found in request to: {}", request.getRequestURI());
         return null;
     }
 }

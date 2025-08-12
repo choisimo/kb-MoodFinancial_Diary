@@ -12,20 +12,36 @@ const firebaseConfig = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase only if configuration is complete
+let app = null;
+if (firebaseConfig.projectId && firebaseConfig.apiKey) {
+  try {
+    app = initializeApp(firebaseConfig);
+    console.log('Firebase initialized successfully');
+  } catch (error) {
+    console.warn('Firebase initialization failed:', error);
+  }
+} else {
+  console.warn('Firebase configuration incomplete. Skipping initialization.');
+}
 
 // Initialize Firebase Cloud Messaging and get a reference to the service
 let messaging = null;
 
-// Check if messaging is supported
-isSupported().then((supported) => {
-  if (supported) {
-    messaging = getMessaging(app);
-  } else {
-    console.warn('Firebase messaging is not supported in this browser');
-  }
-});
+// Check if messaging is supported and app is initialized
+if (app) {
+  isSupported().then((supported) => {
+    if (supported) {
+      messaging = getMessaging(app);
+    } else {
+      console.warn('Firebase messaging is not supported in this browser');
+    }
+  }).catch((error) => {
+    console.warn('Firebase messaging check failed:', error);
+  });
+} else {
+  console.warn('Firebase app not initialized. Messaging unavailable.');
+}
 
 // Your VAPID key (get this from Firebase Console)
 const vapidKey = process.env.REACT_APP_FIREBASE_VAPID_KEY;

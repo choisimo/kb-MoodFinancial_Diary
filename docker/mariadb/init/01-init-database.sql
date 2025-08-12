@@ -11,18 +11,25 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255),
     nickname VARCHAR(100),
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
     profile_image_url VARCHAR(500),
     email_verified BOOLEAN DEFAULT FALSE,
     verification_token VARCHAR(255),
-    auth_provider ENUM('LOCAL', 'GOOGLE', 'KAKAO') DEFAULT 'LOCAL',
-    provider_id VARCHAR(255),
+    verification_token_expiry DATETIME(6),
+    reset_password_token VARCHAR(255),
+    reset_password_token_expiry DATETIME(6),
     role ENUM('USER', 'ADMIN') DEFAULT 'USER',
-    status ENUM('ACTIVE', 'INACTIVE', 'SUSPENDED') DEFAULT 'ACTIVE',
+    status ENUM('ACTIVE', 'INACTIVE', 'SUSPENDED', 'DELETED', 'PENDING_VERIFICATION') DEFAULT 'ACTIVE',
+    provider ENUM('LOCAL', 'GOOGLE', 'KAKAO', 'FACEBOOK', 'NAVER') DEFAULT 'LOCAL',
+    provider_id VARCHAR(255),
     last_login_at TIMESTAMP NULL,
+    login_attempts INT DEFAULT 0,
+    locked_until DATETIME(6),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_users_email (email),
-    INDEX idx_users_provider (auth_provider, provider_id),
+    INDEX idx_users_provider (provider, provider_id),
     INDEX idx_users_status (status)
 );
 
@@ -194,8 +201,8 @@ INSERT INTO expense_categories (name, parent_id, color, icon, is_system, sort_or
 ('유류비', (SELECT id FROM expense_categories WHERE name = '교통비' AND parent_id IS NULL), '#3B82F6', 'fuel', TRUE, 4);
 
 -- Create admin user (password: admin123!)
-INSERT INTO users (email, password, nickname, email_verified, role, auth_provider) VALUES
-('admin@mooddiary.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Admin', TRUE, 'ADMIN', 'LOCAL');
+INSERT INTO users (email, password, nickname, first_name, last_name, email_verified, role, provider) VALUES
+('admin@mooddiary.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Admin', 'Admin', 'User', TRUE, 'ADMIN', 'LOCAL');
 
 -- Create admin user settings
 INSERT INTO user_settings (user_id, notification_enabled, target_entries_per_week) VALUES

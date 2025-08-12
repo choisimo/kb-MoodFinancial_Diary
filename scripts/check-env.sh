@@ -8,14 +8,17 @@ set -e
 
 echo "🔍 환경변수 설정 확인 중..."
 
-# 환경변수 파일 확인
-if [ -f .env.local ]; then
-    echo "✅ .env.local 파일 존재"
-    export $(cat .env.local | grep -v '^#' | grep -v '^$' | xargs)
+# 환경변수 파일 확인 (.env 우선)
+if [ -f .env ]; then
+    echo "✅ .env 파일 존재"
+    export $(cat .env | grep -v '^#' | grep -v '^$' | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' | xargs)
+elif [ -f .env.local ]; then
+    echo "✅ .env.local 파일 사용 (대체)"
+    export $(cat .env.local | grep -v '^#' | grep -v '^$' | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' | xargs)
 else
-    echo "❌ .env.local 파일이 없습니다."
-    echo "📝 .env.local.example을 복사하여 생성하세요:"
-    echo "   cp .env.local.example .env.local"
+    echo "❌ 환경변수 파일이 없습니다."
+    echo "📝 .env.example을 복사하여 .env 파일을 생성하세요:"
+    echo "   cp .env.example .env"
     exit 1
 fi
 
@@ -133,6 +136,6 @@ if [ "$all_good" = true ]; then
     exit 0
 else
     echo "❌ 일부 환경변수에 문제가 있습니다."
-    echo "   .env.local 파일을 확인하고 수정해주세요."
+    echo "   .env 파일을 확인하고 수정해주세요."
     exit 1
 fi

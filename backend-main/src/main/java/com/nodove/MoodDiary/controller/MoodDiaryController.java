@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,11 +32,12 @@ public class MoodDiaryController {
     
     @PostMapping
     public ResponseEntity<ApiResponse<MoodDiaryResponse>> createDiary(
-            @AuthenticationPrincipal User user,
-            @Valid @RequestBody MoodDiaryRequest request) {
+            @Valid @RequestBody MoodDiaryRequest request,
+            Authentication authentication) {
         
-        log.info("Creating mood diary for user: {}", user.getEmail());
-        MoodDiaryResponse response = moodDiaryService.createDiary(user, request);
+        Long userId = (Long) authentication.getDetails();
+        log.info("Creating mood diary for user: {}", userId);
+        MoodDiaryResponse response = moodDiaryService.createDiary(request, userId);
         
         return ResponseEntity.ok(ApiResponse.<MoodDiaryResponse>builder()
                 .success(true)
@@ -46,12 +48,13 @@ public class MoodDiaryController {
     
     @GetMapping
     public ResponseEntity<ApiResponse<Page<MoodDiaryResponse>>> getUserDiaries(
-            @AuthenticationPrincipal User user,
+            Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         
+        Long userId = (Long) authentication.getDetails();
         Pageable pageable = PageRequest.of(page, size);
-        Page<MoodDiaryResponse> diaries = moodDiaryService.getUserDiaries(user, pageable);
+        Page<MoodDiaryResponse> diaries = moodDiaryService.getUserDiaries(userId, pageable);
         
         return ResponseEntity.ok(ApiResponse.<Page<MoodDiaryResponse>>builder()
                 .success(true)
@@ -62,10 +65,11 @@ public class MoodDiaryController {
     
     @GetMapping("/{diaryId}")
     public ResponseEntity<ApiResponse<MoodDiaryResponse>> getDiary(
-            @AuthenticationPrincipal User user,
+            Authentication authentication,
             @PathVariable Long diaryId) {
         
-        MoodDiaryResponse diary = moodDiaryService.getDiary(user, diaryId);
+        Long userId = (Long) authentication.getDetails();
+        MoodDiaryResponse diary = moodDiaryService.getDiary(userId, diaryId);
         
         return ResponseEntity.ok(ApiResponse.<MoodDiaryResponse>builder()
                 .success(true)
@@ -76,11 +80,12 @@ public class MoodDiaryController {
     
     @PutMapping("/{diaryId}")
     public ResponseEntity<ApiResponse<MoodDiaryResponse>> updateDiary(
-            @AuthenticationPrincipal User user,
+            Authentication authentication,
             @PathVariable Long diaryId,
             @Valid @RequestBody MoodDiaryRequest request) {
         
-        MoodDiaryResponse response = moodDiaryService.updateDiary(user, diaryId, request);
+        Long userId = (Long) authentication.getDetails();
+        MoodDiaryResponse response = moodDiaryService.updateDiary(userId, diaryId, request);
         
         return ResponseEntity.ok(ApiResponse.<MoodDiaryResponse>builder()
                 .success(true)
@@ -91,10 +96,11 @@ public class MoodDiaryController {
     
     @DeleteMapping("/{diaryId}")
     public ResponseEntity<ApiResponse<Void>> deleteDiary(
-            @AuthenticationPrincipal User user,
+            Authentication authentication,
             @PathVariable Long diaryId) {
         
-        moodDiaryService.deleteDiary(user, diaryId);
+        Long userId = (Long) authentication.getDetails();
+        moodDiaryService.deleteDiary(userId, diaryId);
         
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .success(true)
@@ -104,13 +110,14 @@ public class MoodDiaryController {
     
     @GetMapping("/mood/{mood}")
     public ResponseEntity<ApiResponse<Page<MoodDiaryResponse>>> getDiariesByMood(
-            @AuthenticationPrincipal User user,
+            Authentication authentication,
             @PathVariable MoodType mood,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         
+        Long userId = (Long) authentication.getDetails();
         Pageable pageable = PageRequest.of(page, size);
-        Page<MoodDiaryResponse> diaries = moodDiaryService.getDiariesByMood(user, mood, pageable);
+        Page<MoodDiaryResponse> diaries = moodDiaryService.getDiariesByMood(userId, mood, pageable);
         
         return ResponseEntity.ok(ApiResponse.<Page<MoodDiaryResponse>>builder()
                 .success(true)
@@ -121,13 +128,14 @@ public class MoodDiaryController {
     
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<MoodDiaryResponse>>> searchDiaries(
-            @AuthenticationPrincipal User user,
+            Authentication authentication,
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         
+        Long userId = (Long) authentication.getDetails();
         Pageable pageable = PageRequest.of(page, size);
-        Page<MoodDiaryResponse> diaries = moodDiaryService.searchDiaries(user, keyword, pageable);
+        Page<MoodDiaryResponse> diaries = moodDiaryService.searchDiaries(userId, keyword, pageable);
         
         return ResponseEntity.ok(ApiResponse.<Page<MoodDiaryResponse>>builder()
                 .success(true)
@@ -138,9 +146,10 @@ public class MoodDiaryController {
     
     @GetMapping("/recent")
     public ResponseEntity<ApiResponse<List<MoodDiaryResponse>>> getRecentDiaries(
-            @AuthenticationPrincipal User user) {
+            Authentication authentication) {
         
-        List<MoodDiaryResponse> diaries = moodDiaryService.getRecentDiaries(user);
+        Long userId = (Long) authentication.getDetails();
+        List<MoodDiaryResponse> diaries = moodDiaryService.getRecentDiaries(userId);
         
         return ResponseEntity.ok(ApiResponse.<List<MoodDiaryResponse>>builder()
                 .success(true)
@@ -151,11 +160,12 @@ public class MoodDiaryController {
     
     @GetMapping("/date-range")
     public ResponseEntity<ApiResponse<List<MoodDiaryResponse>>> getDiariesByDateRange(
-            @AuthenticationPrincipal User user,
+            Authentication authentication,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         
-        List<MoodDiaryResponse> diaries = moodDiaryService.getDiariesByDateRange(user, startDate, endDate);
+        Long userId = (Long) authentication.getDetails();
+        List<MoodDiaryResponse> diaries = moodDiaryService.getDiariesByDateRange(userId, startDate, endDate);
         
         return ResponseEntity.ok(ApiResponse.<List<MoodDiaryResponse>>builder()
                 .success(true)

@@ -36,7 +36,8 @@ public class MoodDiaryService {
     
     // 기존 메서드들 유지
     @Transactional
-    public MoodDiaryResponse createDiary(User user, MoodDiaryRequest request) {
+    public MoodDiaryResponse createDiary(MoodDiaryRequest request, Long userId) {
+        User user = getUserById(userId);
         log.info("Creating mood diary for user: {}", user.getEmail());
         
         MoodDiary diary = MoodDiary.builder()
@@ -56,7 +57,8 @@ public class MoodDiaryService {
     }
     
     @Transactional
-    public MoodDiaryResponse updateDiary(User user, Long diaryId, MoodDiaryRequest request) {
+    public MoodDiaryResponse updateDiary(Long userId, Long diaryId, MoodDiaryRequest request) {
+        User user = getUserById(userId);
         log.info("Updating mood diary {} for user: {}", diaryId, user.getEmail());
         
         MoodDiary diary = moodDiaryRepository.findByIdAndUser(diaryId, user)
@@ -76,7 +78,8 @@ public class MoodDiaryService {
     }
     
     @Transactional
-    public void deleteDiary(User user, Long diaryId) {
+    public void deleteDiary(Long userId, Long diaryId) {
+        User user = getUserById(userId);
         log.info("Deleting mood diary {} for user: {}", diaryId, user.getEmail());
         
         MoodDiary diary = moodDiaryRepository.findByIdAndUser(diaryId, user)
@@ -85,36 +88,42 @@ public class MoodDiaryService {
         moodDiaryRepository.delete(diary);
     }
     
-    public MoodDiaryResponse getDiary(User user, Long diaryId) {
+    public MoodDiaryResponse getDiary(Long userId, Long diaryId) {
+        User user = getUserById(userId);
         MoodDiary diary = moodDiaryRepository.findByIdAndUser(diaryId, user)
                 .orElseThrow(() -> new RuntimeException("일기를 찾을 수 없습니다."));
         
         return convertToResponse(diary);
     }
     
-    public Page<MoodDiaryResponse> getUserDiaries(User user, Pageable pageable) {
+    public Page<MoodDiaryResponse> getUserDiaries(Long userId, Pageable pageable) {
+        User user = getUserById(userId);
         Page<MoodDiary> diaries = moodDiaryRepository.findByUserOrderByCreatedAtDesc(user, pageable);
         return diaries.map(this::convertToResponse);
     }
     
-    public Page<MoodDiaryResponse> getDiariesByMood(User user, MoodType mood, Pageable pageable) {
+    public Page<MoodDiaryResponse> getDiariesByMood(Long userId, MoodType mood, Pageable pageable) {
+        User user = getUserById(userId);
         Page<MoodDiary> diaries = moodDiaryRepository.findByUserAndMoodOrderByCreatedAtDesc(user, mood, pageable);
         return diaries.map(this::convertToResponse);
     }
     
-    public List<MoodDiaryResponse> getDiariesByDateRange(User user, LocalDateTime startDate, LocalDateTime endDate) {
+    public List<MoodDiaryResponse> getDiariesByDateRange(Long userId, LocalDateTime startDate, LocalDateTime endDate) {
+        User user = getUserById(userId);
         List<MoodDiary> diaries = moodDiaryRepository.findByUserAndDateRange(user, startDate, endDate);
         return diaries.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
     
-    public Page<MoodDiaryResponse> searchDiaries(User user, String keyword, Pageable pageable) {
+    public Page<MoodDiaryResponse> searchDiaries(Long userId, String keyword, Pageable pageable) {
+        User user = getUserById(userId);
         Page<MoodDiary> diaries = moodDiaryRepository.findByUserAndKeyword(user, keyword, pageable);
         return diaries.map(this::convertToResponse);
     }
     
-    public List<MoodDiaryResponse> getRecentDiaries(User user) {
+    public List<MoodDiaryResponse> getRecentDiaries(Long userId) {
+        User user = getUserById(userId);
         List<MoodDiary> diaries = moodDiaryRepository.findTop5ByUserOrderByCreatedAtDesc(user);
         return diaries.stream()
                 .map(this::convertToResponse)

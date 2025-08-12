@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8090
 
 spring:
   application:
@@ -50,9 +50,9 @@ infisical:
   environment: ${INFISICAL_ENVIRONMENT:dev}
 
 jwt:
-  secret: ${JWT_SECRET:kb-mood-diary-default-secret-key-256-bit}
-  expiration: 86400000 # 24 hours
-  refresh-expiration: 604800000 # 7 days
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000} # 24 hours
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7 days
 
 app:
   upload:
@@ -68,16 +68,16 @@ firebase:
   database-url: ${FIREBASE_DATABASE_URL:}
 
 ---
-# Development Profile
+# Development Profile (Docker compatible)
 spring:
   config:
     activate:
-      on-profile: dev
+      on-profile: development
   
   datasource:
-    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3308}/${DB_NAME:kb_mood_diary}?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Seoul
-    username: ${DB_USER:kb_user}
-    password: ${DB_PASSWORD:kb_password_2024!}
+    url: jdbc:mariadb://${DB_HOST:mariadb}:${DB_PORT:3306}/${DB_NAME:mood_diary}?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Seoul
+    username: ${DB_USER:mood_user}
+    password: ${DB_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
   
   jpa:
@@ -91,9 +91,9 @@ spring:
   
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:kb_redis_password_2024!}
+      password: ${REDIS_PASSWORD:}
       timeout: 2000ms
       lettuce:
         pool:
@@ -107,13 +107,13 @@ spring:
       client:
         registration:
           google:
-            client-id: ${OAUTH2_GOOGLE_CLIENT_ID:75762973181-cjgb2bqddgfle3vh2hjsfckngecj99ov.apps.googleusercontent.com}
-            client-secret: ${OAUTH2_GOOGLE_CLIENT_SECRET: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}
+            client-id: ${OAUTH2_GOOGLE_CLIENT_ID}
+            client-secret: ${OAUTH2_GOOGLE_CLIENT_SECRET}
             scope: openid,profile,email
             redirect-uri: "{baseUrl}/login/oauth2/code/google"
           kakao:
-            client-id: ${OAUTH2_KAKAO_CLIENT_ID:your-kakao-client-id}
-            client-secret: ${OAUTH2_KAKAO_CLIENT_SECRET:5qp4ppgnmDdOHHyibKlZyCVAEDctVQeO}
+            client-id: ${OAUTH2_KAKAO_CLIENT_ID}
+            client-secret: ${OAUTH2_KAKAO_CLIENT_SECRET}
             scope: profile_nickname,profile_image,account_email
             redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
             authorization-grant-type: authorization_code
@@ -124,6 +124,9 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
+
+infisical:
+  enabled: ${INFISICAL_ENABLED:false}
 
 logging:
   level:
@@ -140,9 +143,9 @@ spring:
       on-profile: docker
   
   datasource:
-    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3308}/${DB_NAME:kb_mood_diary}?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Seoul
-    username: ${DB_USER:kb_user}
-    password: ${DB_PASSWORD:kb_password_2024!}
+    url: jdbc:mariadb://${DB_HOST:mariadb}:3306/${DB_NAME:mood_diary}?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Seoul
+    username: ${DB_USER:mood_user}
+    password: ${DB_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
   
   jpa:
@@ -156,9 +159,9 @@ spring:
   
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6380}
-      password: ${REDIS_PASSWORD:kb_redis_password_2024!}
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
       timeout: 2000ms
       lettuce:
         pool:
@@ -172,13 +175,13 @@ spring:
       client:
         registration:
           google:
-            client-id: ${OAUTH2_GOOGLE_CLIENT_ID:75762973181-cjgb2bqddgfle3vh2hjsfckngecj99ov.apps.googleusercontent.com}
-            client-secret: ${OAUTH2_GOOGLE_CLIENT_SECRET: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}
+            client-id: ${OAUTH2_GOOGLE_CLIENT_ID}
+            client-secret: ${OAUTH2_GOOGLE_CLIENT_SECRET}
             scope: openid,profile,email
             redirect-uri: "{baseUrl}/login/oauth2/code/google"
           kakao:
-            client-id: ${OAUTH2_KAKAO_CLIENT_ID:your-kakao-client-id}
-            client-secret: ${OAUTH2_KAKAO_CLIENT_SECRET:5qp4ppgnmDdOHHyibKlZyCVAEDctVQeO}
+            client-id: ${OAUTH2_KAKAO_CLIENT_ID}
+            client-secret: ${OAUTH2_KAKAO_CLIENT_SECRET}
             scope: profile_nickname,profile_image,account_email
             redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
             authorization-grant-type: authorization_code
@@ -191,7 +194,7 @@ spring:
             user-name-attribute: id
 
 infisical:
-  enabled: ${INFISICAL_ENABLED:true}
+  enabled: ${INFISICAL_ENABLED:false}
 
 logging:
   level:

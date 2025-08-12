@@ -1,0 +1,147 @@
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: mood-diary-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-mood_diary}
+      MYSQL_USER: ${DB_USER:-mood_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-mood_password}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./docker/mariadb/init:/docker-entrypoint-initdb.d
+    networks:
+      - mood-diary-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: mood-diary-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - mood-diary-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend-main
+      dockerfile: Dockerfile
+    container_name: mood-diary-backend
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Environment Configuration
+      ENV: development
+      SPRING_PROFILES_ACTIVE: docker
+      
+      # Infisical Configuration (Disabled)
+      INFISICAL_ENABLED: false
+      
+      # Database Configuration
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: mood_diary
+      DB_USER: mood_user
+      DB_PASSWORD: mood_password
+      
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      
+      # JWT Configuration
+      JWT_SECRET: myverylongjwtsecretkeythatisatleast32characterslong123456789
+      JWT_EXPIRATION: 86400000
+      JWT_REFRESH_EXPIRATION: 604800000
+      
+      # OAuth2 Configuration
+      OAUTH2_GOOGLE_CLIENT_ID: test-google-client-id
+      OAUTH2_GOOGLE_CLIENT_SECRET: test-google-client-secret
+      OAUTH2_KAKAO_CLIENT_ID: test-kakao-client-id
+      OAUTH2_KAKAO_CLIENT_SECRET: test-kakao-client-secret
+      
+      # App Configuration
+      FRONTEND_URL: http://localhost:3000
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8080
+      
+      # Application Settings
+      SERVER_PORT: 8090
+      APP_NAME: MoodDiary
+    ports:
+      - "${BACKEND_PORT:-8090}:8090"
+    networks:
+      - mood-diary-network
+    env_file:
+      - .env.simple
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Environment Configuration
+        ENV: ${ENV:-development}
+        
+        # API Configuration
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        VITE_APP_TITLE: ${VITE_APP_TITLE:-KB 감정 다이어리}
+        VITE_APP_VERSION: ${VITE_APP_VERSION:-1.0.0}
+        
+        # Infisical Configuration (Disabled)
+        VITE_INFISICAL_ENABLED: false
+    container_name: mood-diary-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    networks:
+      - mood-diary-network
+    env_file:
+      - .env.simple
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  mariadb_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  mood-diary-network:
+    driver: bridge
+    name: mood-diary-network
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

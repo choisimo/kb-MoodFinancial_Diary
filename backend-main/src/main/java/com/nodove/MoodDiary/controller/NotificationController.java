@@ -4,6 +4,7 @@ import com.nodove.MoodDiary.dto.NotificationDTO;
 import com.nodove.MoodDiary.dto.NotificationSettingsDTO;
 import com.nodove.MoodDiary.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,9 +14,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
@@ -82,13 +85,21 @@ public class NotificationController {
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamNotifications(
             Authentication authentication,
-            @RequestParam(value = "token", required = false) String token) {
+            @RequestParam(value = "token", required = false) String token,
+            HttpServletRequest request) {
         
-        // 인증 확인 (토큰이 제공된 경우 추가 검증 가능)
+        log.debug("SSE stream request - Authentication: {}, Token param: {}, URI: {}", 
+                authentication != null ? authentication.getName() : "null",
+                token != null ? token.substring(0, Math.min(10, token.length())) + "..." : "null",
+                request.getRequestURI());
+        
+        // 인증 확인
         if (authentication == null || authentication.getName() == null) {
+            log.error("SSE connection failed - Authentication is null or has no name. Token provided: {}", token != null);
             throw new RuntimeException("Authentication required for SSE connection");
         }
         
+        log.info("Creating SSE connection for user: {}", authentication.getName());
         return notificationService.createSseConnection(authentication.getName());
     }
 

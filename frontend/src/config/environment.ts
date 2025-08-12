@@ -1,18 +1,4 @@
-/**
- * Environment Configuration (PRD Implementation)
- * 
- * This module provides centralized environment variable management for the frontend,
- * integrating with Infisical for secure secret management across different environments.
- * 
- * Features:
- * - Infisical integration for secure secret management
- * - Environment-specific configuration (development, staging, production)
- * - Type-safe environment variable access
- * - Fallback to process.env for local development
- * - Comprehensive error handling and validation
- */
-
-import { InfisicalClient } from '@infisical/sdk';
+import { InfisicalSDK } from '@infisical/sdk';
 
 interface EnvironmentConfig {
   // API Configuration
@@ -38,7 +24,7 @@ interface EnvironmentConfig {
 class EnvironmentManager {
   private static instance: EnvironmentManager;
   private config: EnvironmentConfig | null = null;
-  private infisicalClient: InfisicalClient | null = null;
+  private infisicalClient: InfisicalSDK | null = null;
   private initialized = false;
   
   private constructor() {}
@@ -98,7 +84,7 @@ class EnvironmentManager {
     }
     
     try {
-      this.infisicalClient = new InfisicalClient({
+      this.infisicalClient = new InfisicalSDK({
         clientId,
         clientSecret,
       });
@@ -196,13 +182,18 @@ class EnvironmentManager {
    * Get default API URL based on environment
    */
   private getDefaultApiUrl(environment: string): string {
+    // Check if running in Docker environment
+    const isDocker = window.location.hostname !== 'localhost' || window.location.port === '8080';
+    
     switch (environment) {
       case 'production':
         return 'https://api.yourdomain.com';
       case 'staging':
         return 'https://staging-api.yourdomain.com';
       default:
-        return 'http://localhost:8090';
+        // In Docker environment, use nginx proxy (relative path)
+        // In local development, use direct backend URL
+        return isDocker ? '' : 'http://localhost:8090';
     }
   }
   

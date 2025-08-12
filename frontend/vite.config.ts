@@ -7,6 +7,23 @@ export default defineConfig({
   server: {
     host: "::",
     port: 8085,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/oauth2': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/login/oauth2': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   plugins: [react()],
   resolve: {

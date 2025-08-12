@@ -28,8 +28,21 @@ export const useSSE = (onNotification, options = {}) => {
       setConnectionState('connecting');
       console.log('SSE: Attempting to connect...');
 
-      const token = localStorage.getItem('token');
-      const url = `${process.env.REACT_APP_API_URL}/api/notifications/stream`;
+      const token = localStorage.getItem('accessToken');
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8090';
+      const url = `${apiBaseUrl}/api/notifications/stream`;
+      
+      console.log('SSE: Connection details:', {
+        token: token ? `${token.substring(0, 10)}...` : 'null',
+        apiBaseUrl,
+        fullUrl: `${url}?token=${token ? token.substring(0, 10) + '...' : 'null'}`
+      });
+      
+      if (!token) {
+        console.error('SSE: No access token found in localStorage');
+        setConnectionState('error');
+        return;
+      }
       
       // EventSource는 헤더를 직접 설정할 수 없으므로 토큰을 쿼리 파라미터로 전달
       const eventSource = new EventSource(`${url}?token=${token}`);
