@@ -54,6 +54,26 @@ public class MoodDiary {
     @Builder.Default
     private Boolean isPrivate = true;
     
+    // AI Analysis Fields
+    @Column(name = "emotion_score")
+    private Double emotionScore;
+    
+    @Column(name = "dominant_emotion")
+    private String dominantEmotion;
+    
+    @Column(name = "financial_emotion_score")
+    private Double financialEmotionScore;
+    
+    @Column(name = "ai_analysis_completed")
+    @Builder.Default
+    private Boolean aiAnalysisCompleted = false;
+    
+    @Column(name = "analysis_details", columnDefinition = "TEXT")
+    private String analysisDetails;
+    
+    @Column(name = "diary_date", nullable = false)
+    private LocalDateTime diaryDate;
+    
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -61,4 +81,11 @@ public class MoodDiary {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        if (diaryDate == null) {
+            diaryDate = LocalDateTime.now();
+        }
+    }
 }

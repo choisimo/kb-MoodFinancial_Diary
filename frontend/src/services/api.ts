@@ -147,6 +147,42 @@ export interface MoodDiaryResponse {
   moodKoreanName: string;
   moodEmoji: string;
   moodColor: string;
+  // AI Analysis Fields
+  emotionScore?: number;
+  dominantEmotion?: string;
+  financialEmotionScore?: number;
+  aiAnalysisCompleted?: boolean;
+  analysisDetails?: string;
+  diaryDate: string;
+}
+
+// AI Service Types
+export interface EmotionAnalysisResult {
+  emotionScore: number;
+  dominantEmotion: string;
+  confidence: number;
+  emotionBreakdown?: Record<string, number>;
+  financialEmotionScore: number;
+  aiEnhanced: boolean;
+  analysisDetails: string;
+  emotionalTriggers?: string[];
+}
+
+export interface FinancialCorrelationResult {
+  correlationScore: number;
+  spendingTrend: string;
+  emotionImpact: number;
+  riskLevel: string;
+  analysisDetails: string;
+}
+
+export interface PersonalizedRecommendation {
+  category: string;
+  title: string;
+  description: string;
+  actionType: string;
+  priority: number;
+  aiGenerated: boolean;
 }
 
 export interface PageResponse<T> {
@@ -219,6 +255,29 @@ export const moodDiaryAPI = {
   // 일기 통계
   getDiaryStats: (): Promise<ApiResponse<any>> =>
     api.get('/mood-diaries/stats').then(res => res.data),
+};
+
+// AI Service API
+export const aiAPI = {
+  // 감정 분석
+  analyzeEmotion: (text: string): Promise<EmotionAnalysisResult> =>
+    api.post('/ai/analyze-emotion', { text }).then(res => res.data),
+  
+  // 재정-감정 상관관계 분석
+  analyzeFinancialCorrelation: (diaryId: number): Promise<FinancialCorrelationResult> =>
+    api.post(`/ai/analyze-financial-correlation/${diaryId}`).then(res => res.data),
+  
+  // 개인화된 추천
+  getRecommendations: (diaryId?: number): Promise<PersonalizedRecommendation[]> =>
+    api.get('/ai/recommendations', { params: diaryId ? { diaryId } : {} }).then(res => res.data),
+  
+  // 다이어리 종합 AI 분석
+  processComprehensiveAnalysis: (diaryId: number): Promise<string> =>
+    api.post(`/ai/process-diary/${diaryId}`).then(res => res.data),
+  
+  // AI 서비스 상태 확인
+  healthCheck: (): Promise<Record<string, any>> =>
+    api.get('/ai/health').then(res => res.data),
 };
 
 export default api;

@@ -67,6 +67,12 @@ firebase:
   service-account-file: ${FIREBASE_SERVICE_ACCOUNT_FILE:firebase-service-account.json}
   database-url: ${FIREBASE_DATABASE_URL:}
 
+# AI Services 설정
+openai:
+  api:
+    key: ${OPENAI_API_KEY:}
+  model: ${OPENAI_MODEL:gpt-3.5-turbo}
+
 ---
 # Development Profile (Docker compatible)
 spring:

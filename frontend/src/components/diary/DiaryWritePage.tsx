@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, Heart, Cloud, MapPin, Tag, X, Plus } from 'lucide-react';
+import { Save, Heart, Cloud, MapPin, Tag, X, Plus, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,18 +10,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
-
-interface MoodType {
-  name: string;
-  koreanName: string;
-  emoji: string;
-  color: string;
-}
+import { EmotionAnalysis } from '@/components/EmotionAnalysis';
+import { AIRecommendations } from '@/components/AIRecommendations';
+import { moodDiaryAPI, aiAPI, EmotionAnalysisResult, MoodType } from '@/services/api';
 
 interface DiaryData {
   title: string;
   content: string;
-  mood: string;
+  mood: MoodType | '';
   moodIntensity: number;
   tags: string[];
   weather: string;
@@ -29,23 +25,25 @@ interface DiaryData {
   isPrivate: boolean;
 }
 
-const MOOD_TYPES: MoodType[] = [
-  { name: 'VERY_HAPPY', koreanName: '매우 행복', emoji: '😄', color: '#FFD700' },
-  { name: 'HAPPY', koreanName: '행복', emoji: '😊', color: '#FFA500' },
-  { name: 'CONTENT', koreanName: '만족', emoji: '😌', color: '#90EE90' },
-  { name: 'NEUTRAL', koreanName: '보통', emoji: '😐', color: '#D3D3D3' },
-  { name: 'ANXIOUS', koreanName: '불안', emoji: '😰', color: '#87CEEB' },
-  { name: 'SAD', koreanName: '슬픔', emoji: '😢', color: '#ADD8E6' },
-  { name: 'ANGRY', koreanName: '화남', emoji: '😠', color: '#FF6B6B' },
-  { name: 'DEPRESSED', koreanName: '우울', emoji: '😞', color: '#9370DB' },
-  { name: 'EXCITED', koreanName: '신남', emoji: '🤩', color: '#FF69B4' },
-  { name: 'TIRED', koreanName: '피곤', emoji: '😴', color: '#B0C4DE' },
+const MOOD_TYPES = [
+  { name: MoodType.VERY_HAPPY, koreanName: '매우 행복', emoji: '😄', color: '#FFD700' },
+  { name: MoodType.HAPPY, koreanName: '행복', emoji: '😊', color: '#FFA500' },
+  { name: MoodType.CONTENT, koreanName: '만족', emoji: '😌', color: '#90EE90' },
+  { name: MoodType.NEUTRAL, koreanName: '보통', emoji: '😐', color: '#D3D3D3' },
+  { name: MoodType.ANXIOUS, koreanName: '불안', emoji: '😰', color: '#87CEEB' },
+  { name: MoodType.SAD, koreanName: '슬픔', emoji: '😢', color: '#ADD8E6' },
+  { name: MoodType.ANGRY, koreanName: '화남', emoji: '😠', color: '#FF6B6B' },
+  { name: MoodType.DEPRESSED, koreanName: '우울', emoji: '😞', color: '#9370DB' },
+  { name: MoodType.EXCITED, koreanName: '신남', emoji: '🤩', color: '#FF69B4' },
+  { name: MoodType.TIRED, koreanName: '피곤', emoji: '😴', color: '#B0C4DE' },
 ];
 
 export const DiaryWritePage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setSaving] = useState(false);
   const [newTag, setNewTag] = useState('');
+  const [emotionAnalysisResult, setEmotionAnalysisResult] = useState<EmotionAnalysisResult | null>(null);
+  const [savedDiaryId, setSavedDiaryId] = useState<number | null>(null);
   const [formData, setFormData] = useState<DiaryData>({
     title: '',
     content: '',
@@ -89,7 +87,7 @@ export const DiaryWritePage: React.FC = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleMoodSelect = (moodName: string) => {
+  const handleMoodSelect = (moodName: MoodType) => {
     handleInputChange('mood', moodName);
   };
 
@@ -111,6 +109,10 @@ export const DiaryWritePage: React.FC = () => {
     }
   };
 
+  const handleEmotionAnalysisComplete = (result: EmotionAnalysisResult) => {
+    setEmotionAnalysisResult(result);
+  };
+
   const saveDiary = async (isDraft = false) => {
     if (!formData.title.trim()) {
       toast({
@@ -130,20 +132,23 @@ export const DiaryWritePage: React.FC = () => {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/mood-diaries', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ...formData,
-          isDraft,
-        }),
-      });
+      const requestData = {
+        title: formData.title,
+        content: formData.content,
+        mood: formData.mood,
+        moodIntensity: formData.moodIntensity,
+        tags: formData.tags,
+        weather: formData.weather,
+        location: formData.location,
+        isPrivate: formData.isPrivate,
+      };
 
-      if (response.ok) {
+      const response = await moodDiaryAPI.createDiary(requestData);
+      
+      if (response.success) {
+        const diaryId = response.data.id;
+        setSavedDiaryId(diaryId);
+        
         // 임시저장 데이터 삭제
         localStorage.removeItem('diary-draft');
         
@@ -152,14 +157,26 @@ export const DiaryWritePage: React.FC = () => {
           description: isDraft ? '일기가 임시저장되었습니다.' : '일기가 성공적으로 저장되었습니다.',
         });
 
+        // AI 종합 분석 시작
+        if (!isDraft && diaryId) {
+          try {
+            await aiAPI.processComprehensiveAnalysis(diaryId);
+            toast({
+              title: 'AI 분석 완료',
+              description: 'AI 기반 감정 분석이 완료되었습니다.',
+            });
+          } catch (error) {
+            console.error('AI analysis error:', error);
+          }
+        }
+
         if (!isDraft) {
           navigate('/mood-diaries');
         }
       } else {
-        const errorData = await response.json();
         toast({
           title: '저장 실패',
-          description: errorData.message || '일기 저장에 실패했습니다.',
+          description: response.message || '일기 저장에 실패했습니다.',
           variant: 'destructive',
         });
       }
@@ -280,6 +297,15 @@ export const DiaryWritePage: React.FC = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* AI 실시간 감정 분석 */}
+            {formData.content.length > 10 && (
+              <EmotionAnalysis 
+                content={formData.content}
+                diaryId={savedDiaryId || undefined}
+                onAnalysisComplete={handleEmotionAnalysisComplete}
+              />
+            )}
           </div>
 
           {/* 사이드 영역 */}
@@ -408,6 +434,11 @@ export const DiaryWritePage: React.FC = () => {
                 임시저장
               </Button>
             </div>
+
+            {/* AI 추천 시스템 */}
+            {(emotionAnalysisResult || savedDiaryId) && (
+              <AIRecommendations diaryId={savedDiaryId || undefined} />
+            )}
           </div>
         </div>
       </div>
